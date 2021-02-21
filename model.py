@@ -1,7 +1,6 @@
-with open('data/test.csv', 'r') as f:
-    test_data = [ [ int(px) for px in l.split(',') ] for l in f.read().splitlines()[1:] ]
+class Model:
+    def __init__(self,) -> None:
+        pass
 
-with open('data/test.csv', 'r') as f:
-    train_data = [ [ int(px) for px in l.split(',') ] for l in f.read().splitlines()[1:] ]
-
-# TODO
+if __name__ == "__main__":
+    pass
