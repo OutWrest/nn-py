@@ -1,6 +1,7 @@
 import math
 from typing import List
 from layer import Layer
+from functools import reduce, total_ordering
 
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
@@ -20,6 +21,15 @@ class Model:
         else:
             # Sets the input shape neurons from last layer
             self.layers.append( Layer(self.layers[-1].neurons, neurons ))
+    
+    def local_cost(self, output_activations: List[float], expected_activations: List[float]):
+        assert len(output_activations) == len(expected_activations)
+        
+        loss = 0
+        for predicted, expected in zip(output_activations, expected_activations):
+            loss += pow(predicted-expected, 2)
+
+        return loss
     
     def predict(self, inputs: List[float]) -> List[float]:
         # There are layers that exist
