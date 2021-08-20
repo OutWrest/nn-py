@@ -23,7 +23,7 @@ def run():
     while True:
         draw(index)
         index += 1
-        try :
+        try:
             root.update()
             root.update_idletasks()
         except Exception as e:
