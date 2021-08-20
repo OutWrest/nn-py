@@ -33,13 +33,24 @@ class Layer:
         """
         return len(self.nodes)
 
-    def propagate(self, input: List[float], activation_function: Callable) -> List[float]:
+    def forwardpropagate(self, input: List[float], activation_function: Callable) -> List[float]:
         """
         Propagates the values in the previous layer through the layer.
         :param input: The activations to carry through.
         :return: A list of the values in the layer.
         """ 
         return [activation_function(sum([i * j for i, j in zip(input, w)]) + self.bias) for w in self.weights]
+    
+    def backpropagate(self, error: List[float], learning_rate: float) -> None:
+        """
+        Backpropagates the error through the layer.
+        :param error: The error to backpropagate.
+        :param learning_rate: The learning rate to use.
+        """
+        for i in range(len(self.weights)):
+            for j in range(len(self.weights[i])):
+                self.weights[i][j] -= learning_rate * error[i] * self.nodes[j]
+        self.bias -= learning_rate * sum(error)
 
 if __name__ == "__main__":
     example = Layer(nodes=2, prev_nodes=2)
