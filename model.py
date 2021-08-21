@@ -83,8 +83,9 @@ class Model:
     def __local_diff(self, activations: List[float], expected: List[float]) -> List[float]:
         return [ (act_n - exp_n) for act_n, exp_n in zip(activations, expected) ]
     
-    def __backpropagate(self, a_input: List[float], expected: List[float], learning_rate: float = 0.5) -> None:
+    def backpropagate(self, a_input: List[float], expected: List[float], learning_rate: float = 0.5) -> None:
         activations = self.__predict(a_input)
+        print(activations)
         error = self.__cost(activations[-1], expected)
         e_total = reduce(lambda x, y: x + y, error)
 
@@ -111,7 +112,7 @@ class Model:
         for c1, d1, w in zip(ll_c, l1_d, self.layers[-1].get_weights()[0]):
             print(c1*d1*w)
 
-    def backpropagate(self, x: List[float], y: List[float], learning_rate: float = 0.5) -> None:
+    def abackpropagate(self, x: List[float], y: List[float], learning_rate: float = 0.5) -> None:
         pass
 
 if __name__ == "__main__":
