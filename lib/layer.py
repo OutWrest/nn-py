@@ -5,9 +5,10 @@ class Layer:
     def __init__(self, nodes: int, prev_nodes: int) -> None:
         """
         Initializes a layer with a given number of nodes and a given number of weights.
-        :param prev_weights: The number of weights in the previous layer.
-        :param nodes: The number of nodes in the layer.
+        :param nodes: The number of nodes in the layer
+        :param prev_nodes: The number of nodes in the previous layer.
         """
+        self.prev_nodes = prev_nodes
         self.weights = [[random.uniform(-1, 1) for _ in range(nodes)] for _ in range(prev_nodes)]
         self.nodes   = [random.uniform(-1, 1) for _ in range(nodes)]
         self.bias    = random.uniform(-1, 1)
@@ -39,7 +40,22 @@ class Layer:
         :param input: The activations to carry through.
         :return: A list of the values in the layer.
         """ 
-        return [activation_function(sum([i * j for i, j in zip(input, w)]) + self.bias) for w in self.weights]
+        assert len(input) == self.prev_nodes
+
+        #return [activation_function(sum([i * j for i, j in zip(input, w)]) + self.bias) for w in self.weights]
+        [self.weights[i] for i in range(self.prev_nodes)]
+
+    def updateweights(self, weights: List[List[float]], bias: float = None) -> None:
+        """
+        Updates the weights and bias with a given set of weights. Includes error checking.
+        :param weights: The weights to change
+        :param bias: The bias to be changed, optional.
+        """
+        assert len(self) == len(weights)
+        assert self.prev_nodes == len(weights[0])
+
+        self.weights = weights
+        if bias: self.bias = bias
     
     def backpropagate(self, error: List[float], learning_rate: float) -> None:
         """

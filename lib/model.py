@@ -1,8 +1,13 @@
 import math
 
 from typing import Callable, List
-from layer import Layer
-from activation import sigmoid, d_sigmoid
+
+try:
+    from lib.layer import Layer
+    from lib.activation import sigmoid, d_sigmoid
+except ModuleNotFoundError:
+    from layer import Layer
+    from activation import sigmoid, d_sigmoid
 
 class Model:
     def __init__(self, input_shape: tuple) -> None:
@@ -48,7 +53,7 @@ class Model:
             assert self.input_shape is not None
             assert len(layer) == self.input_shape[0]
         else:
-            assert len(layer.weights) == len(self.layers[-1])
+            assert layer.prev_nodes == len(self.layers[-1])
 
         self.layers.append(layer)
     
@@ -139,16 +144,17 @@ class Model:
         #print(d_error_wrt_out)
         d_out_wrt_error = [out * (1 - out) for out in output]
         #print(d_out_wrt_error)
-        pd_out_wrt_w = [activations[-2][i] for i in range(len(d_out_wrt_error))]
+        pd_out_wrt_w = [activations[-2][i] for i in range(len(activations[-2]))]
         #print(pd_out_wrt_w)
 
         deltas = []
+        #print(len(d_error_wrt_out), len(d_out_wrt_error), len(pd_out_wrt_w), len(self.layers[-1].weights))
         for et, on, nw, weights in zip(d_error_wrt_out, d_out_wrt_error, pd_out_wrt_w, self.layers[-1].weights):
             delta = []
             for w in weights:
                 change = w - (learning_rate * on * nw * et)
                 delta.append(change)
-                print(f"[Delta] {str(w): <4} - ({on: <20} * {nw: <20} * {et: <20}) = {change}")
+                #print(f"[Delta] {str(w): <4} - ({on: <20} * {nw: <20} * {et: <20}) = {change}")
             deltas.append(delta)
         weights_deltas.append(deltas)
 
@@ -163,13 +169,14 @@ class Model:
             for w in weights:
                 change = w - (learning_rate * inp * ow * et)
                 delta.append(change)
-                print(f"[Delta] {str(w): <4} - ({inp: <20} * {ow: <20} * {et: <20}) = {change}")
+                #print(f"[Delta] {str(w): <4} - ({inp: <20} * {ow: <20} * {et: <20}) = {change}")
             deltas.append(delta)
         weights_deltas.append(deltas)
 
         # Change weights
-        for layer, deltas in zip(self.layers, weights_deltas):
-            layer.weights = [w - d for w, d in zip(layer.weights, deltas)]
+
+        for weight, layer in zip(weights_deltas[::-1], self.layers):
+            layer.updateweights(weight)
 
 if __name__ == "__main__":
     # https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
@@ -178,23 +185,31 @@ if __name__ == "__main__":
 
     example = Model(input_shape=(2,))
 
+    INIT_WEIGHTS = True
+
     example.add(Layer(2, 2))
     example.add(Layer(2, 2))
 
-    example.layers[0].weights = [
-        [.15, .20], [.25, .30]
-    ]
-    example.layers[0].bias = .35
+    if INIT_WEIGHTS:
+        example.layers[0].weights = [
+            [.15, .20], [.25, .30]
+        ]
+        example.layers[0].bias = .35
 
-    example.layers[1].weights = [
-        [.40, .45], [.50, .55]
-    ]
-    example.layers[1].bias = .60
+        example.layers[1].weights = [
+            [.40, .45], [.50, .55]#, [.45, .20]
+        ]
+        example.layers[1].bias = .60
 
     # print(example.forwardpropagate([.05, .10]))
     print(f"Total Error: {example.get_error([.05, .10], [.01, .99])}")
 
     # Backward propagation
 
-    example.train([.05, .10], [.01, .99])
+    for k in range(10000):
+        example.train([.05, .10], [.01, .99])
 
+    print(example.layers[-1])
+
+    print(f"Total Error: {example.get_error([.05, .10], [.01, .99])}")
+  
