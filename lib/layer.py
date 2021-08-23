@@ -36,14 +36,13 @@ class Layer:
 
     def forwardpropagate(self, input: List[float], activation_function: Callable) -> List[float]:
         """
-        Propagates the values in the previous layer through the layer.
+        Propagates the values in the previous layer through the layer. Handles laysrs with different number of nodes.
         :param input: The activations to carry through.
         :return: A list of the values in the layer.
         """ 
         assert len(input) == self.prev_nodes
 
-        #return [activation_function(sum([i * j for i, j in zip(input, w)]) + self.bias) for w in self.weights]
-        [self.weights[i] for i in range(self.prev_nodes)]
+        return [activation_function(sum([input[i] * self.weights[i][j] for i in range(self.prev_nodes)]) + self.bias) for j in range(len(self))]
 
     def updateweights(self, weights: List[List[float]], bias: float = None) -> None:
         """
@@ -51,8 +50,8 @@ class Layer:
         :param weights: The weights to change
         :param bias: The bias to be changed, optional.
         """
-        assert len(self) == len(weights)
-        assert self.prev_nodes == len(weights[0])
+        assert len(self.weights) == len(weights)
+        assert len(self) == len(weights[0])
 
         self.weights = weights
         if bias: self.bias = bias

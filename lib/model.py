@@ -148,19 +148,18 @@ class Model:
         #print(pd_out_wrt_w)
 
         deltas = []
-        #print(len(d_error_wrt_out), len(d_out_wrt_error), len(pd_out_wrt_w), len(self.layers[-1].weights))
-        for et, on, nw, weights in zip(d_error_wrt_out, d_out_wrt_error, pd_out_wrt_w, self.layers[-1].weights):
+        for nw, weights in zip(pd_out_wrt_w, self.layers[-1].weights):
             delta = []
-            for w in weights:
-                change = w - (learning_rate * on * nw * et)
+            for i, w in enumerate(weights):
+                change = w - (learning_rate * d_error_wrt_out[i] * nw * d_out_wrt_error[i])
                 delta.append(change)
                 #print(f"[Delta] {str(w): <4} - ({on: <20} * {nw: <20} * {et: <20}) = {change}")
             deltas.append(delta)
         weights_deltas.append(deltas)
 
-        pd_e_wrt_out = [[e_o * o_n * self.layers[-1].weights[w][i] for e_o, o_n, w in zip(d_error_wrt_out, d_out_wrt_error, range(2))] for i in range(len(self.layers[-1].weights[0]))]
+        pd_e_wrt_out = [[e_o * o_n * self.layers[-1].weights[w][i] for e_o, o_n, w in zip(d_error_wrt_out, d_out_wrt_error, range(len(self.layers[-2])))] for i in range(len(self.layers[-1].weights[0]))]
 
-        e_total_out = [sum(e_wrt_out) for e_wrt_out in pd_e_wrt_out]
+        e_total_out = [sum([eout[i] for eout in pd_e_wrt_out]) for i in range(len(pd_e_wrt_out[0]))]
         d_pd_out_wrt_w = [act * (1 - act) for act in pd_out_wrt_w]
         
         deltas = []
@@ -185,7 +184,7 @@ if __name__ == "__main__":
 
     example = Model(input_shape=(2,))
 
-    INIT_WEIGHTS = True
+    INIT_WEIGHTS, TEST = True, False
 
     example.add(Layer(2, 2))
     example.add(Layer(2, 2))
@@ -197,19 +196,22 @@ if __name__ == "__main__":
         example.layers[0].bias = .35
 
         example.layers[1].weights = [
-            [.40, .45], [.50, .55]#, [.45, .20]
+            [.40, .45], [.50, .55]
         ]
         example.layers[1].bias = .60
 
-    # print(example.forwardpropagate([.05, .10]))
+        if TEST:
+            example.layers[1].weights = [
+                [.40, .45, .55], [.60, .65, .70]
+            ]
+
+    print(example.forwardpropagate([.05, .10]))
     print(f"Total Error: {example.get_error([.05, .10], [.01, .99])}")
 
     # Backward propagation
 
     for k in range(10000):
         example.train([.05, .10], [.01, .99])
-
-    print(example.layers[-1])
 
     print(f"Total Error: {example.get_error([.05, .10], [.01, .99])}")
   
