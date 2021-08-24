@@ -21,6 +21,15 @@ class Model:
         self.output_shape = None
     
     @staticmethod
+    def d_sigmoid(x: float) -> float:
+        """
+        Calculates the derivative of the sigmoid function for a given input that has already been passed through sigmoid.
+        :param x: The input.
+        :return: The derivative.
+        """
+        return x * (1 - x)
+    
+    @staticmethod
     def t_error(expected: List[float], actual: List[float]) -> float:
         """
         Calculates the total error between the expected and actual values.
@@ -42,6 +51,16 @@ class Model:
         :return: The error.
         """
         return 0.5 * math.pow(expected - actual, 2)
+
+    @staticmethod
+    def switch_weight_reference(weights: List[List[float]]) -> List[List[float]]:
+        """
+        Switches the weight reference from the x by y to y by x.
+        :param weights: The weights.
+        :return: The weights.
+        """
+        x, y = len(weights), len(weights[0])
+
 
     def add(self, layer: Layer) -> None:
         """
@@ -139,40 +158,44 @@ class Model:
 
         output = self.forwardpropagate(input_data, activation)
         activations = self.__fpropagate(input_data, activation)
+        #print(output, activations)
+        #output, activations = [0.7513650695523157, 0.7729284653214625], [[0.5932699921071872, 0.596884378259767], [0.7513650695523157, 0.7729284653214625]]
 
         d_error_wrt_out = [-(target-out) for target, out in zip(expected_data, output)]
         #print(d_error_wrt_out)
-        d_out_wrt_error = [out * (1 - out) for out in output]
+        d_out_wrt_error = [self.d_sigmoid(out) for out in output]
         #print(d_out_wrt_error)
         pd_out_wrt_w = [activations[-2][i] for i in range(len(activations[-2]))]
         #print(pd_out_wrt_w)
 
         deltas = []
-        for nw, weights in zip(pd_out_wrt_w, self.layers[-1].weights):
+        for nw, i in zip(pd_out_wrt_w, range(len(self.layers[-1].weights))):
             delta = []
-            for i, w in enumerate(weights):
-                change = w - (learning_rate * d_error_wrt_out[i] * nw * d_out_wrt_error[i])
+            for j in range(len(self.layers[-1])):
+                change = self.layers[-1].weights[j][i] - (learning_rate * d_error_wrt_out[j] * nw * d_out_wrt_error[j])
                 delta.append(change)
-                #print(f"[Delta] {str(w): <4} - ({on: <20} * {nw: <20} * {et: <20}) = {change}")
+                #print(f"[Delta] {str(self.layers[-1].weights[j][i]): <4} - ({ d_error_wrt_out[j]: <20} * {nw: <20} * {d_out_wrt_error[j]: <20}) = {change}")
             deltas.append(delta)
         weights_deltas.append(deltas)
 
         pd_e_wrt_out = [[e_o * o_n * self.layers[-1].weights[w][i] for e_o, o_n, w in zip(d_error_wrt_out, d_out_wrt_error, range(len(self.layers[-2])))] for i in range(len(self.layers[-1].weights[0]))]
 
         e_total_out = [sum([eout[i] for eout in pd_e_wrt_out]) for i in range(len(pd_e_wrt_out[0]))]
-        d_pd_out_wrt_w = [act * (1 - act) for act in pd_out_wrt_w]
+        d_pd_out_wrt_w = [self.d_sigmoid(act) for act in pd_out_wrt_w]
         
         deltas = []
-        for et, inp, ow, weights in zip(e_total_out, input_data, d_pd_out_wrt_w, self.layers[0].weights):
+        for et, inp, ow, i in zip(e_total_out, input_data, d_pd_out_wrt_w, range(len(self.layers[0].weights))):
             delta = []
-            for w in weights:
-                change = w - (learning_rate * inp * ow * et)
+            for j in range(len(self.layers[0])):
+                change = self.layers[0].weights[j][i] - (learning_rate * inp * ow * et)
                 delta.append(change)
-                #print(f"[Delta] {str(w): <4} - ({inp: <20} * {ow: <20} * {et: <20}) = {change}")
+                #print(f"[Delta] {str(self.layers[0].weights[j][i]): <4} - ({inp: <20} * {ow: <20} * {et: <20}) = {change}")
             deltas.append(delta)
         weights_deltas.append(deltas)
 
         # Change weights
+
+        print(weights_deltas[::-1])
 
         for weight, layer in zip(weights_deltas[::-1], self.layers):
             layer.updateweights(weight)
@@ -191,12 +214,12 @@ if __name__ == "__main__":
 
     if INIT_WEIGHTS:
         example.layers[0].weights = [
-            [.15, .20], [.25, .30]
+            [.15, .25], [.20, .30]
         ]
         example.layers[0].bias = .35
 
         example.layers[1].weights = [
-            [.40, .45], [.50, .55]
+            [.40, .50], [.45, .55]
         ]
         example.layers[1].bias = .60
 
@@ -210,8 +233,11 @@ if __name__ == "__main__":
 
     # Backward propagation
 
-    for k in range(10000):
-        example.train([.05, .10], [.01, .99])
+    BACK_PROP = True
+    
+    if BACK_PROP:
+        for k in range(10000):
+            example.train([.05, .10], [.01, .99])
 
-    print(f"Total Error: {example.get_error([.05, .10], [.01, .99])}")
+        print(f"Total Error: {example.get_error([.05, .10], [.01, .99])}")
   
