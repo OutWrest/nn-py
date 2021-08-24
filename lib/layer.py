@@ -44,7 +44,7 @@ class Layer:
 
         return [activation_function(sum([input[i] * self.weights[i][j] for i in range(self.prev_nodes)]) + self.bias) for j in range(len(self))]
 
-    def updateweights(self, weights: List[List[float]], bias: float = None) -> None:
+    def update_weights(self, weights: List[List[float]], bias: float = None) -> None:
         """
         Updates the weights and bias with a given set of weights. Includes error checking.
         :param weights: The weights to change
@@ -52,7 +52,7 @@ class Layer:
         """
         assert len(self.weights) == len(weights)
         assert len(self) == len(weights[0])
-
+        
         self.weights = weights
         if bias: self.bias = bias
     
