@@ -172,15 +172,14 @@ class Model:
         #print(pd_out_wrt_w)
 
         deltas = [[0] * len(self.layers[-1].weights) for _ in range(len(self.layers[-1]))]
-        print(deltas)
         for nw, i in zip(pd_out_wrt_w, range(len(self.layers[-1].weights))):
             for j in range(len(self.layers[-1])):
                 change = self.reshape_list(self.layers[-1].weights)[j][i] - (learning_rate * d_error_wrt_out[j] * nw * d_out_wrt_error[j])
                 deltas[j][i] = change
-                #print(f"[Delta] {str(self.layers[-1].weights[j][i]): <4} - ({ d_error_wrt_out[j]: <20} * {nw: <20} * {d_out_wrt_error[j]: <20}) = {change}")
+                print(f"[Delta] {str(self.layers[-1].weights[j][i]): <4} - ({ d_error_wrt_out[j]: <20} * {nw: <20} * {d_out_wrt_error[j]: <20}) = {change}")
         weights_deltas.append(deltas)
 
-        + = [[e_o * o_n * self.reshape_list(self.layers[-1].weights)[w][i] for e_o, o_n, w in zip(d_error_wrt_out, d_out_wrt_error, range(len(self.layers[-2])))] for i in range(len(self.layers[-1].weights[0]))]
+        pd_e_wrt_out = [[e_o * o_n * (self.layers[-1].weights)[w][i] for e_o, o_n, w in zip(d_error_wrt_out, d_out_wrt_error, range(len(self.layers[-2])))] for i in range(len(self.layers[-1].weights[0]))]
 
         e_total_out = [sum(eout) for eout in pd_e_wrt_out]
         d_pd_out_wrt_w = [self.d_sigmoid(act) for act in pd_out_wrt_w]
@@ -190,7 +189,7 @@ class Model:
             for j in range(len(self.layers[0])):
                 change = self.layers[0].weights[j][i] - (learning_rate * inp * ow * et)
                 deltas[j][i] = change
-                #print(f"[Delta] {str(self.layers[0].weights[j][i]): <4} - ({learning_rate} * {inp: <20} * {ow: <20} * {et: <20}) = {change}")
+                print(f"[Delta] {str(self.layers[0].weights[j][i]): <4} - ({learning_rate} * {inp: <20} * {ow: <20} * {et: <20}) = {change}")
         weights_deltas.append(deltas)
 
         # Change weights
@@ -207,10 +206,10 @@ if __name__ == "__main__":
 
     example = Model(input_shape=(2,))
 
-    INIT_WEIGHTS, TEST = False, False
+    INIT_WEIGHTS, TEST = True, False
 
     example.add(Layer(2, 2))
-    example.add(Layer(3, 2))
+    example.add(Layer(2, 2))
 
     if INIT_WEIGHTS:
         example.layers[0].weights = [
@@ -229,17 +228,17 @@ if __name__ == "__main__":
             ]
 
     print(example.forwardpropagate([.05, .10]))
-    print(f"Total Error: {example.get_error([.05, .10], [.01, .99, .05])}")
+    print(f"Total Error: {example.get_error([.05, .10], [.01, .99])}")
 
     # Backward propagation
 
-    BACK_PROP = True
+    BACK_PROP = False
     
     if BACK_PROP:
         for k in range(10000):
-            example.train([.05, .10], [.01, .99, .05])
+            example.train([.05, .10], [.01, .99])
     else:
-        example.train([.05, .10], [.01, .99, .05])
+        example.train([.05, .10], [.01, .99])
 
-    print(f"Total Error: {example.get_error([.05, .10], [.01, .99, .05])}")
+    print(f"Total Error: {example.get_error([.05, .10], [.01, .99])}")
   
