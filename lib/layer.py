@@ -5,9 +5,10 @@ class Layer:
     def __init__(self, nodes: int, prev_nodes: int) -> None:
         """
         Initializes a layer with a given number of nodes and a given number of weights.
-        :param prev_weights: The number of weights in the previous layer.
-        :param nodes: The number of nodes in the layer.
+        :param nodes: The number of nodes in the layer
+        :param prev_nodes: The number of nodes in the previous layer.
         """
+        self.prev_nodes = prev_nodes
         self.weights = [[random.uniform(-1, 1) for _ in range(nodes)] for _ in range(prev_nodes)]
         self.nodes   = [random.uniform(-1, 1) for _ in range(nodes)]
         self.bias    = random.uniform(-1, 1)
@@ -35,11 +36,25 @@ class Layer:
 
     def forwardpropagate(self, input: List[float], activation_function: Callable) -> List[float]:
         """
-        Propagates the values in the previous layer through the layer.
+        Propagates the values in the previous layer through the layer. Handles laysrs with different number of nodes.
         :param input: The activations to carry through.
         :return: A list of the values in the layer.
         """ 
-        return [activation_function(sum([i * j for i, j in zip(input, w)]) + self.bias) for w in self.weights]
+        assert len(input) == self.prev_nodes
+
+        return [activation_function(sum([input[i] * self.weights[i][j] for i in range(self.prev_nodes)]) + self.bias) for j in range(len(self))]
+
+    def update_weights(self, weights: List[List[float]], bias: float = None) -> None:
+        """
+        Updates the weights and bias with a given set of weights. Includes error checking.
+        :param weights: The weights to change
+        :param bias: The bias to be changed, optional.
+        """
+        assert len(self.weights) == len(weights)
+        assert len(self) == len(weights[0])
+        
+        self.weights = weights
+        if bias: self.bias = bias
     
     def backpropagate(self, error: List[float], learning_rate: float) -> None:
         """
