@@ -1,5 +1,8 @@
 import random
+
 from typing import Callable, List
+
+from helpers import reshape_list
 
 class Layer:
     def __init__(self, nodes: int, prev_nodes: int) -> None:
@@ -34,15 +37,23 @@ class Layer:
         """
         return len(self.nodes)
 
-    def forwardpropagate(self, input: List[float], activation_function: Callable) -> List[float]:
+    def forwardpropagate(self, input_d: List[float], activation_function: Callable) -> List[float]:
         """
         Propagates the values in the previous layer through the layer. Handles laysrs with different number of nodes.
-        :param input: The activations to carry through.
+        :param input_d: The activations to carry through.
         :return: A list of the values in the layer.
         """ 
-        assert len(input) == self.prev_nodes
+        assert len(input_d) == self.prev_nodes
 
-        return [activation_function(sum([input[i] * self.weights[i][j] for i in range(self.prev_nodes)]) + self.bias) for j in range(len(self))]
+        #print(reshape_list([[inp] * len(self) for inp in input_d]))
+        #exit()
+
+        #for i in range(len(self)):
+        #    for j in range(len(self)):
+        #        print(reshape_list([[inp] * len(self) for inp in input_d])[i][j], reshape_list(self.weights)[i][j])
+        #exit()
+            
+        return [activation_function(sum([reshape_list([[inp] * len(self) for inp in input_d])[i][j] * reshape_list(self.weights)[i][j] for j in range(self.prev_nodes)]) + self.bias) for i in range(len(self))]
 
     def update_weights(self, weights: List[List[float]], bias: float = None) -> None:
         """
