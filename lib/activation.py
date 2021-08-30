@@ -7,11 +7,11 @@ def sigmoid(x: float) -> float:
     :return:
     """
     return 1.0 / (1.0 + math.exp(-x))
-  
+
 def d_sigmoid(x: float) -> float:
     """
-    Compute the sigmoid derivative of x
-    :param x:
-    :return:
+    Calculates the derivative of the sigmoid function for a given input that has already been passed through sigmoid.
+    :param x: The input.
+    :return: The derivative.
     """
-    return sigmoid(x) * (1.0 - sigmoid(x))
+    return x * (1 - x)
