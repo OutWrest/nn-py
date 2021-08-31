@@ -2,7 +2,12 @@ import random
 
 from typing import Callable, List
 
-from helpers import reshape_list
+try:
+    from lib.activation import *
+    from lib.helpers import *
+except ModuleNotFoundError:
+    from activation import *
+    from helpers import *
 
 class Layer:
     def __init__(self, nodes: int, prev_nodes: int) -> None:
@@ -55,19 +60,12 @@ class Layer:
         #    for j in range((self.prev_nodes)):
         #        print(reshape_list([[inp] * len(self) for inp in input_d])[i][j], reshape_list(self.weights)[i][j])
         #exit()
-
         ret = []
 
-        print(input_data)
-        print(self.weights)
-
-        for weights, inp in zip(self.weights, input_data):
-            ret.append(activation_function(sum([w * inp for w in weights]) + self.bias))
-            print([w * inp for w in weights], sum([w * inp for w in weights]) + self.bias)
+        for i in range(len(self)):
+            ret.append(activation_function(sum(self.weights[j][i] * (input_data[j] / 255) for j in range(self.prev_nodes)) + self.bias))
 
         return ret
-
-        return [activation_function(sum([([[inp] * len(self) for inp in input_data])[i][j] * (self.weights)[i][j] for j in range(self.prev_nodes)]) + self.bias) for i in range(len(self))]
 
     def update_weights(self, weights: List[List[float]], bias: float = None) -> None:
         """

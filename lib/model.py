@@ -122,14 +122,14 @@ class Model:
         #print(d_error_wrt_out)
         d_out_wrt_error = [d_sigmoid(out) for out in outputs]
         #print(d_out_wrt_error)
-        pd_out_wrt_w = reshape_list([[act] * len(outputs) for act in activations[-2]])
+        pd_out_wrt_w = [[act] * len(outputs) for act in activations[-2]]
         #print(pd_out_wrt_w)
 
         weights = []
         for i, weights_p in enumerate(self.layers[-1].weights):
             weight = []
             for k, w in enumerate(weights_p):
-                weight.append(w - (learning_rate * pd_out_wrt_w[k][i] * d_out_wrt_error[k] * d_error_wrt_out[k]))
+                weight.append(w - (learning_rate * pd_out_wrt_w[i][k] * d_out_wrt_error[k] * d_error_wrt_out[k]))
                 #print(f"w_d = {w} - ({learning_rate} * {pd_out_wrt_w[k][i]} * {d_out_wrt_error[k]} {d_error_wrt_out[k]})")
             weights.append(weight)
         weights_deltas.append(weights)
@@ -143,7 +143,7 @@ class Model:
         for i, weights_p, inp_p in zip(range(len(self.layers[-2].weights)), self.layers[-2].weights, input_data[::-1]):
             weight = []
             for k, w in enumerate(weights_p):
-                weight.append(w - (learning_rate * pd_e_wrt_out[k] * inp_p * pd_sig_wrt_out[k]))
+                weight.append(w - (learning_rate * pd_e_wrt_out[k] * (inp_p / 255) * pd_sig_wrt_out[k]))
                 #print(f"w_d = {w} - ({learning_rate} * {pd_e_wrt_out[k]} * {inp_p} * {pd_sig_wrt_out[k]})")
             weights.append(weight)
         weights_deltas.append(weights)
@@ -156,14 +156,14 @@ if __name__ == "__main__":
 
     # Forward propagation
 
-    example = Model(input_shape=(2,))
+    example = Model(input_shape=(700,))
 
-    INIT_WEIGHTS, TEST = True, False
+    INIT_WEIGHTS, TEST = False, False
 
-    example.add(Layer(2, 2))
-    example.add(Layer(2, 2))
+    example.add(Layer(64, 700))
+    example.add(Layer(10, 64))
 
-    prop, out = [.05, .10], [.01, .99]
+    prop, out = [.05] * 700, [.01] * 10
 
     if INIT_WEIGHTS:
         example.layers[0].weights = [
