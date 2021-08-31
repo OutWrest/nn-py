@@ -1,30 +1,40 @@
 from lib import *
-from image_data import train_data_x, train_data_y, test_data_x
+from mnist_data import train_data_x, train_data_y, test_data_x, test_data_y
 
 mnist = Model(input_shape=(28*28,))
 
-mnist.add(Layer(128*2, 28*28))
-mnist.add(Layer(10, 128*2))
-
-def test():
-    print(f"Total Error: {mnist.get_error(train_data_x[0], train_data_y[0])}")
-
-for k in range(5):
-    mnist.train_batch(train_data_x, train_data_y, learning_rate=0.25)
-    test()
+mnist.add(Layer(512, 28*28))
+mnist.add(Layer(10, 512))
 
 def argmax(l):
     return l.index(max(l))
 
-print("TESTING")
-
-with open('out.csv', 'w') as f:
-    f.write("ImageId,Label\n")
+def test():
+    TOTAL_RIGHT = 0
+    AVERAGE = 0
     for i, t_data in enumerate(test_data_x):
-        if i % 1000 == 0:
-            print(f"Test {i}")
-
         prediction = mnist.forwardpropagate(t_data)
-        #print(prediction)
+        if  test_data_y[i][argmax(prediction)] == 1:
+            TOTAL_RIGHT += 1
+        
+        if AVERAGE == 0:
+            AVERAGE = mnist.get_error(t_data, test_data_y[i])
+        else:
+            AVERAGE = (AVERAGE * i + mnist.get_error(t_data, test_data_y[i])) / (i + 1)
 
-        f.write(f"{i+1},{argmax(prediction)}\n")
+        #if i % 1000 == 0:
+        #    print(f"{TOTAL_RIGHT}/{i}")
+        #    print(f"Average Cost: {AVERAGE}")
+
+    print(f"{TOTAL_RIGHT}/{i} = {TOTAL_RIGHT / i}")
+    print(f"Average Cost: {AVERAGE}")
+
+test()
+
+for k in range(30):
+    print(f"Epoch {k}")
+    mnist.train_batch(train_data_x, train_data_y, learning_rate=0.5)
+    test()
+    print("-"*10)
+
+
