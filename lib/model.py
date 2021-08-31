@@ -1,4 +1,5 @@
 import math
+from tqdm import tqdm
 
 from typing import Callable, List
 
@@ -163,13 +164,28 @@ class Model:
         if batch_size == 0:
             batch_size = len(input_data)
 
-        for i in range(0, len(input_data), batch_size):
-            weights_total = [[0 for _ in range(len(weights_p))] for weights_p in self.layers[-1].weights] + [[0 for _ in range(len(weights_p))] for weights_p in self.layers[-2].weights]
+        for i in tqdm(range(0, len(input_data), batch_size)):
+            weights_total = [[[0 for _ in range(len(weights_p))] for weights_p in self.layers[-1].weights], [[0 for _ in range(len(weights_p))] for weights_p in self.layers[-2].weights]]
+            
+            total = []
             for b in range(batch_size):
-                weights_deltas = self.train_delta(input_data[i + b], expected_data[i + b], learning_rate, activation)
+                try:
+                    weights_deltas = self.train_delta(input_data[i + b], expected_data[i + b], learning_rate, activation)
+                except IndexError:
+                    if total: 
+                        batch_size = len(total)
+                        break
+                    return
+                total.append(weights_deltas)
 
-        for weight, layer in zip(weights_total[::-1], self.layers):
-            layer.update_weights(weight)
+            for k_t in total:
+                for i in range(len(weights_total)):
+                    for j in range(len(weights_total[i])):
+                        for k in range(len(weights_total[i][j])):
+                            weights_total[i][j][k] += k_t[i][j][k] / batch_size
+
+            for weight, layer in zip(weights_total[::-1], self.layers):
+                layer.update_weights(weight)
 
     def train(self, input_data: list, expected_data: list, learning_rate: float = 0.5, activation: Callable = sigmoid) -> None:
         """
@@ -228,13 +244,17 @@ if __name__ == "__main__":
 
     print(f"Total Error: {example.get_error(prop, out)}")
 
-    BACK_PROP = True
+    prop, out = [[.05, .10], [.05, .10]], [[.01, .99], [.01, .99]]
+
+    BACK_PROP = False
     
     if BACK_PROP:
         for k in range(10000):
             example.train(prop, out)
     else:
-        example.train(prop, out)
+        example.train_batch(prop, out, batch_size=2)
+
+    prop, out = [.05, .10] , [.01, .99]
 
     print(f"Test prop: {example.forwardpropagate(prop)}")
 

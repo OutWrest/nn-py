@@ -79,17 +79,6 @@ class Layer:
         
         self.weights = weights
         if bias: self.bias = bias
-    
-    def backpropagate(self, error: List[float], learning_rate: float) -> None:
-        """
-        Backpropagates the error through the layer.
-        :param error: The error to backpropagate.
-        :param learning_rate: The learning rate to use.
-        """
-        for i in range(len(self.weights)):
-            for j in range(len(self.weights[i])):
-                self.weights[i][j] -= learning_rate * error[i] * self.nodes[j]
-        self.bias -= learning_rate * sum(error)
 
 if __name__ == "__main__":
     example = Layer(nodes=2, prev_nodes=2)
