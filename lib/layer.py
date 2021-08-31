@@ -37,23 +37,37 @@ class Layer:
         """
         return len(self.nodes)
 
-    def forwardpropagate(self, input_d: List[float], activation_function: Callable) -> List[float]:
+    def forwardpropagate(self, input_data: List[float], activation_function: Callable) -> List[float]:
         """
         Propagates the values in the previous layer through the layer. Handles laysrs with different number of nodes.
-        :param input_d: The activations to carry through.
+        :param input_data: The activations to carry through.
         :return: A list of the values in the layer.
         """ 
-        assert len(input_d) == self.prev_nodes
+        assert len(input_data) == self.prev_nodes
 
-        print("Nodes", len(self))
-        print("Prev", self.prev_nodes)
+        #print("Nodes", len(self))
+        #print("Prev", self.prev_nodes)
 
-        for i in range(len(self)):
-            for j in range((self.prev_nodes)):
-                print(reshape_list([[inp] * (self.prev_nodes) for inp in input_d])[i][j], reshape_list(self.weights)[i][j])
-        exit()
-            
-        return [activation_function(sum([reshape_list([[inp] * len(self) for inp in input_d])[i][j] * reshape_list(self.weights)[i][j] for j in range(self.prev_nodes)]) + self.bias) for i in range(len(self))]
+        #print(reshape_list([[inp] * len(self) for inp in input_d]))
+        #print(self.weights)
+
+        #for i in range(len(self)):
+        #    for j in range((self.prev_nodes)):
+        #        print(reshape_list([[inp] * len(self) for inp in input_d])[i][j], reshape_list(self.weights)[i][j])
+        #exit()
+
+        ret = []
+
+        print(input_data)
+        print(self.weights)
+
+        for weights, inp in zip(self.weights, input_data):
+            ret.append(activation_function(sum([w * inp for w in weights]) + self.bias))
+            print([w * inp for w in weights], sum([w * inp for w in weights]) + self.bias)
+
+        return ret
+
+        return [activation_function(sum([([[inp] * len(self) for inp in input_data])[i][j] * (self.weights)[i][j] for j in range(self.prev_nodes)]) + self.bias) for i in range(len(self))]
 
     def update_weights(self, weights: List[List[float]], bias: float = None) -> None:
         """
