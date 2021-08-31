@@ -160,8 +160,8 @@ if __name__ == "__main__":
 
     INIT_WEIGHTS, TEST = True, False
 
-    example.add(Layer(5, 2))
-    example.add(Layer(2, 5))
+    example.add(Layer(2, 2))
+    example.add(Layer(2, 2))
 
     prop, out = [.05, .10], [.01, .99]
 
@@ -195,7 +195,9 @@ if __name__ == "__main__":
 
     # Backward propagation
 
-    BACK_PROP = True
+    print(f"Total Error: {example.get_error(prop, out)}")
+
+    BACK_PROP = False
     
     if BACK_PROP:
         for k in range(10000):
