@@ -95,15 +95,15 @@ class Model:
 
         output_data = self.forwardpropagate(input_data, activation)
         return t_error(expected, output_data)
-
-    def train(self, input_data: list, expected_data: list, learning_rate: float = 0.5, epochs: int = 100, activation: Callable = sigmoid) -> None:
+    
+    def train_delta(self, input_data: list, expected_data: list, learning_rate: float = 0.5, activation: Callable = sigmoid) -> None:
         """
         Trains the model using the given data. Assumes a batch size of 1 for now.
         :param input_data: The input data.
         :param expected_data: The expected data.
         :param learning_rate: The learning rate.
         :param epochs: The number of epochs.
-        :return: None
+        :return: The weight deltas
         """
         if len(self.layers) == 0:
             raise ValueError("Model has no layers.")
@@ -143,10 +143,44 @@ class Model:
         for i, weights_p, inp_p in zip(range(len(self.layers[-2].weights)), self.layers[-2].weights, input_data[::-1]):
             weight = []
             for k, w in enumerate(weights_p):
-                weight.append(w - (learning_rate * pd_e_wrt_out[k] * (inp_p / 255) * pd_sig_wrt_out[k]))
+                weight.append(w - (learning_rate * pd_e_wrt_out[k] * (inp_p) * pd_sig_wrt_out[k]))
                 #print(f"w_d = {w} - ({learning_rate} * {pd_e_wrt_out[k]} * {inp_p} * {pd_sig_wrt_out[k]})")
             weights.append(weight)
         weights_deltas.append(weights)
+
+        return weights_deltas
+
+    def train_batch(self, input_data: List[List[float]], expected_data: List[List[float]], batch_size: int = 32, learning_rate: float = 0.5, activation: Callable = sigmoid) -> None:
+        """
+        Trains the model using the given data. Assumes a batch size of 32 unless given.
+        :param input_data: The input data.
+        :param expected_data: The expected data.
+        :param batch_size: The batch size.
+        :param learning_rate: The learning rate.
+        :param epochs: The number of epochs.
+        :return: None
+        """
+        if batch_size == 0:
+            batch_size = len(input_data)
+
+        for i in range(0, len(input_data), batch_size):
+            weights_total = [[0 for _ in range(len(weights_p))] for weights_p in self.layers[-1].weights] + [[0 for _ in range(len(weights_p))] for weights_p in self.layers[-2].weights]
+            for b in range(batch_size):
+                weights_deltas = self.train_delta(input_data[i + b], expected_data[i + b], learning_rate, activation)
+
+        for weight, layer in zip(weights_total[::-1], self.layers):
+            layer.update_weights(weight)
+
+    def train(self, input_data: list, expected_data: list, learning_rate: float = 0.5, activation: Callable = sigmoid) -> None:
+        """
+        Trains the model using the given data. Assumes a batch size of 1 for now.
+        :param input_data: The input data.
+        :param expected_data: The expected data.
+        :param learning_rate: The learning rate.
+        :param epochs: The number of epochs.
+        :return: None
+        """
+        weights_deltas = self.train_delta(input_data, expected_data, learning_rate, activation)
 
         for weight, layer in zip(weights_deltas[::-1], self.layers):
             layer.update_weights(weight)
@@ -156,14 +190,14 @@ if __name__ == "__main__":
 
     # Forward propagation
 
-    example = Model(input_shape=(700,))
+    example = Model(input_shape=(2,))
 
-    INIT_WEIGHTS, TEST = False, False
+    INIT_WEIGHTS = True
 
-    example.add(Layer(64, 700))
-    example.add(Layer(10, 64))
+    example.add(Layer(2, 2))
+    example.add(Layer(2, 2))
 
-    prop, out = [.05] * 700, [.01] * 10
+    prop, out = [.05, .10] , [.01, .99]
 
     if INIT_WEIGHTS:
         example.layers[0].weights = [
@@ -188,22 +222,21 @@ if __name__ == "__main__":
             [.35891647971788465, .5113012702387375], [.4086661860762334, .5613701211079891]
         ]
 
-        if TEST:
-            example.layers[1].weights = [
-                [.40, .45, .55], [.60, .65, .70]
-            ]
-
     # Backward propagation
+
+    print(f"Test prop: {example.forwardpropagate(prop)}")
 
     print(f"Total Error: {example.get_error(prop, out)}")
 
-    BACK_PROP = False
+    BACK_PROP = True
     
     if BACK_PROP:
         for k in range(10000):
             example.train(prop, out)
     else:
         example.train(prop, out)
+
+    print(f"Test prop: {example.forwardpropagate(prop)}")
 
     print(f"Total Error: {example.get_error(prop, out)}")
 

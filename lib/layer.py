@@ -63,7 +63,8 @@ class Layer:
         ret = []
 
         for i in range(len(self)):
-            ret.append(activation_function(sum(self.weights[j][i] * (input_data[j] / 255) for j in range(self.prev_nodes)) + self.bias))
+            ret.append(activation_function(sum(self.weights[j][i] * (input_data[j]) for j in range(self.prev_nodes)) + self.bias))
+            #print([self.weights[j][i] * (input_data[j]) for j in range(self.prev_nodes)], self.bias)
 
         return ret
 
