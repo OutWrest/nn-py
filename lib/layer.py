@@ -45,13 +45,13 @@ class Layer:
         """ 
         assert len(input_d) == self.prev_nodes
 
-        #print(reshape_list([[inp] * len(self) for inp in input_d]))
-        #exit()
+        print("Nodes", len(self))
+        print("Prev", self.prev_nodes)
 
-        #for i in range(len(self)):
-        #    for j in range(len(self)):
-        #        print(reshape_list([[inp] * len(self) for inp in input_d])[i][j], reshape_list(self.weights)[i][j])
-        #exit()
+        for i in range(len(self)):
+            for j in range((self.prev_nodes)):
+                print(reshape_list([[inp] * (self.prev_nodes) for inp in input_d])[i][j], reshape_list(self.weights)[i][j])
+        exit()
             
         return [activation_function(sum([reshape_list([[inp] * len(self) for inp in input_d])[i][j] * reshape_list(self.weights)[i][j] for j in range(self.prev_nodes)]) + self.bias) for i in range(len(self))]
 

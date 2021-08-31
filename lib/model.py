@@ -119,24 +119,37 @@ class Model:
         activations, outputs = self.__fpropagate(input_data, activation)
 
         d_error_wrt_out = [-(target-out) for target, out in zip(expected_data, outputs)]
-        print(d_error_wrt_out)
+        #print(d_error_wrt_out)
         d_out_wrt_error = [d_sigmoid(out) for out in outputs]
-        print(d_out_wrt_error)
+        #print(d_out_wrt_error)
         pd_out_wrt_w = reshape_list([[act] * len(outputs) for act in activations[-2]])
-        print(pd_out_wrt_w)
+        #print(pd_out_wrt_w)
 
         weights = []
         for i, weights_p in enumerate(self.layers[-1].weights):
             weight = []
             for k, w in enumerate(weights_p):
                 weight.append(w - (learning_rate * pd_out_wrt_w[k][i] * d_out_wrt_error[k] * d_error_wrt_out[k]))
-                print(f"w_d = {w} - ({learning_rate} * {pd_out_wrt_w[k][i]} * {d_out_wrt_error[k]} {d_error_wrt_out[k]})")
+                #print(f"w_d = {w} - ({learning_rate} * {pd_out_wrt_w[k][i]} * {d_out_wrt_error[k]} {d_error_wrt_out[k]})")
             weights.append(weight)
         weights_deltas.append(weights)
 
-        #pd_e_wrt_out = [[e_o * o_n * (self.layers[-1].weights)[i][w] for e_o, o_n, w in zip(d_error_wrt_out, d_out_wrt_error, range(len(self.layers[-2])))] for i in range(len(self.layers[-1].weights[0]))]
+        pd_e_wrt_out = [sum([w * d_error_wrt_out[j] * d_out_wrt_error[j] for j, w in enumerate(weights_p)]) for weights_p in self.layers[-1].weights]
         #print(pd_e_wrt_out)
+        pd_sig_wrt_out = [d_sigmoid(act) for act in activations[-2]]
+        #print(pd_sig_wrt_out)
 
+        weights = []
+        for i, weights_p, inp_p in zip(range(len(self.layers[-2].weights)), self.layers[-2].weights, input_data[::-1]):
+            weight = []
+            for k, w in enumerate(weights_p):
+                weight.append(w - (learning_rate * pd_e_wrt_out[k] * inp_p * pd_sig_wrt_out[k]))
+                #print(f"w_d = {w} - ({learning_rate} * {pd_e_wrt_out[k]} * {inp_p} * {pd_sig_wrt_out[k]})")
+            weights.append(weight)
+        weights_deltas.append(weights)
+
+        for weight, layer in zip(weights_deltas[::-1], self.layers):
+            layer.update_weights(weight)
 
 if __name__ == "__main__":
     # https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
@@ -145,12 +158,12 @@ if __name__ == "__main__":
 
     example = Model(input_shape=(2,))
 
-    INIT_WEIGHTS, TEST = False, False
+    INIT_WEIGHTS, TEST = True, False
 
-    example.add(Layer(2, 2))
-    example.add(Layer(25, 2))
+    example.add(Layer(5, 2))
+    example.add(Layer(2, 5))
 
-    prop, out = [.05, .10], [.01] * 25
+    prop, out = [.05, .10], [.01, .99]
 
     if INIT_WEIGHTS:
         example.layers[0].weights = [
@@ -163,17 +176,26 @@ if __name__ == "__main__":
         ]
         example.layers[1].bias = .60
 
+        # [[0.1497807161327628, 0.24975114363236958], [0.19956143226552567, 0.29950228726473915]]
+    if 0:
+        example.layers[0].weights = [
+            [.1497801761327628, .24975114363236958], [.19956143226552567, .29950228726473915]
+        ]
+
+        # [[0.35891647971788465, 0.5113012702387375], [0.4086661860762334, 0.5613701211079891]]]
+
+        example.layers[1].weights = [
+            [.35891647971788465, .5113012702387375], [.4086661860762334, .5613701211079891]
+        ]
+
         if TEST:
             example.layers[1].weights = [
                 [.40, .45, .55], [.60, .65, .70]
             ]
 
-    print(example.forwardpropagate(prop))
-    print(f"Total Error: {example.get_error(prop, out)}")
-
     # Backward propagation
 
-    BACK_PROP = False
+    BACK_PROP = True
     
     if BACK_PROP:
         for k in range(10000):
@@ -182,4 +204,6 @@ if __name__ == "__main__":
         example.train(prop, out)
 
     print(f"Total Error: {example.get_error(prop, out)}")
+
+    #print(example.layers[1].weights)
   
