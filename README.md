@@ -1,6 +1,6 @@
-# Digit Classifier
+# Neural Network Py
 
-This repository contains a classifier for the mnist digits dataset. It is inteded to learn machine learning implementations without the use of any outside machine learning libraries.
+This repository contains a neurnal network model library. It is inteded to learn machine learning implementations without the use of any outside machine learning libraries. It is really slow and zero optimizations. The math behind backprop is very simple and biases across layers remain unchanged. 
 
 ## Usage
 
