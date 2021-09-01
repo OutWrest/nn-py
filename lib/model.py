@@ -130,7 +130,7 @@ class Model:
         for i, weights_p in enumerate(self.layers[-1].weights):
             weight = []
             for k, w in enumerate(weights_p):
-                weight.append((learning_rate * pd_out_wrt_w[i][k] * d_out_wrt_error[k] * d_error_wrt_out[k]))
+                weight.append(w - (learning_rate * pd_out_wrt_w[i][k] * d_out_wrt_error[k] * d_error_wrt_out[k]))
                 #print(f"w_d = {w} - ({learning_rate} * {pd_out_wrt_w[k][i]} * {d_out_wrt_error[k]} {d_error_wrt_out[k]})")
             weights.append(weight)
         weights_deltas.append(weights)
@@ -144,12 +144,12 @@ class Model:
         for i, weights_p, inp_p in zip(range(len(self.layers[-2].weights)), self.layers[-2].weights, input_data[::-1]):
             weight = []
             for k, w in enumerate(weights_p):
-                weight.append((learning_rate * pd_e_wrt_out[k] * (inp_p) * pd_sig_wrt_out[k]))
+                weight.append(w - (learning_rate * pd_e_wrt_out[k] * (inp_p) * pd_sig_wrt_out[k]))
                 #print(f"w_d = {w} - ({learning_rate} * {pd_e_wrt_out[k]} * {inp_p} * {pd_sig_wrt_out[k]})")
             weights.append(weight)
         weights_deltas.append(weights)
 
-        return weights_deltas, outputs
+        return weights_deltas
 
     def train_batch(self, input_data: List[List[float]], expected_data: List[List[float]], batch_size: int = 32, learning_rate: float = 0.5, activation: Callable = sigmoid) -> None:
         """
@@ -163,25 +163,17 @@ class Model:
         """
         if batch_size == 0:
             batch_size = len(input_data)
-        
+
         for i in tqdm(range(0, len(input_data), batch_size)):
             weights_total = [[[0 for _ in range(len(weights_p))] for weights_p in self.layers[-1].weights], [[0 for _ in range(len(weights_p))] for weights_p in self.layers[-2].weights]]
-            batch_error_average = 0
             
             total = []
             for b in range(batch_size):
                 try:
-                    weights_deltas, outputs = self.train_delta(input_data[i + b], expected_data[i + b], learning_rate, activation)
-
-                    if batch_error_average == 0:
-                        batch_error_average = t_error(expected_data[i + b], outputs)
-                    else:
-                        batch_error_average = (batch_error_average * (i + b) + t_error(expected_data[i + b], outputs)) / (i + b + 1)
-
+                    weights_deltas = self.train_delta(input_data[i + b], expected_data[i + b], learning_rate, activation)
                 except IndexError:
                     if total: 
                         batch_size = len(total)
-                        batch_error_average = sum(total) / batch_size
                         break
                     return
                 total.append(weights_deltas)
@@ -204,7 +196,7 @@ class Model:
         :param epochs: The number of epochs.
         :return: None
         """
-        weights_deltas, _ = self.train_delta(input_data, expected_data, learning_rate, activation)
+        weights_deltas = self.train_delta(input_data, expected_data, learning_rate, activation)
 
         for weight, layer in zip(weights_deltas[::-1], self.layers):
             layer.update_weights(weight)
@@ -234,6 +226,18 @@ if __name__ == "__main__":
         ]
         example.layers[1].bias = .60
 
+        # [[0.1497807161327628, 0.24975114363236958], [0.19956143226552567, 0.29950228726473915]]
+    if 0:
+        example.layers[0].weights = [
+            [.1497801761327628, .24975114363236958], [.19956143226552567, .29950228726473915]
+        ]
+
+        # [[0.35891647971788465, 0.5113012702387375], [0.4086661860762334, 0.5613701211079891]]]
+
+        example.layers[1].weights = [
+            [.35891647971788465, .5113012702387375], [.4086661860762334, .5613701211079891]
+        ]
+
     # Backward propagation
 
     print(f"Test prop: {example.forwardpropagate(prop)}")
@@ -244,7 +248,11 @@ if __name__ == "__main__":
 
     BACK_PROP = False
     
-    example.train_batch(prop, out, batch_size=2)
+    if BACK_PROP:
+        for k in range(10000):
+            example.train(prop, out)
+    else:
+        example.train_batch(prop, out, batch_size=2)
 
     prop, out = [.05, .10] , [.01, .99]
 

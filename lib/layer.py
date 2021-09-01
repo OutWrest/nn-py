@@ -77,10 +77,7 @@ class Layer:
         assert len(self.weights) == len(weights)
         assert len(self) == len(weights[0])
         
-        for i in range(len(self)):
-            for j in range(len(self.weights[0])):
-                self.weights[i][j] -= weights[i][j]
-
+        self.weights = weights
         if bias: self.bias = bias
 
 if __name__ == "__main__":
