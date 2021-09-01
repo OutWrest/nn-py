@@ -1,6 +1,19 @@
+<<<<<<< HEAD
 # Python Cache
 __pycache__/*
 __pycache__
 *.pyc
 .pytest_cache
 .pytest_cache/*
+
+# File too big for Git
+mnist_test.csv
+mnist_train.csv
+=======
+# Python Cache
+__pycache__/*
+__pycache__
+*.pyc
+.pytest_cache
+.pytest_cache/*
+>>>>>>> 7c2025e996510f7628466cb167b95d61d5ef2043

@@ -6,7 +6,7 @@ canvas = Canvas(root, width=28*10, height=28*10)
 canvas.pack()
 
 def draw(index):
-    draw_pixelset(data.test_data[index])
+    draw_pixelset(data.test_data_x[index])
 
 def draw_pixelset(pixelset):
     x = 0
@@ -29,5 +29,6 @@ def run():
         except Exception as e:
             print(str(e))
             quit()
+        input()
 
 run()
