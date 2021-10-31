@@ -143,5 +143,5 @@ def logic_or():
 
 
 if __name__ == "__main__":
-    logic_or()
+    logic_and()
 
