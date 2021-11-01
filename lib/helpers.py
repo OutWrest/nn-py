@@ -15,6 +15,18 @@ def reshape_list(data: List[List[float]]) -> List[float]:
             ret[i].append(data[j][i])
     return ret
 
+def dot(v1: List[float], v2: List[float]) -> List[float]:
+    """
+    Calculates the dot product of v1 and v2.
+    :param v1: The first vector.
+    :param v2: The second vector.
+    :return: The dot product of v1 and v2.
+    """
+    if len(v1) != len(v2):
+        raise ValueError("Error in processing the dot product. The lengths of two vectors do not match.")
+
+    return sum(x * y for x, y in zip(v1, v2))
+
 def t_error(expected: List[float], actual: List[float]) -> float:
     """
     Calculates the total error between the expected and actual values.
